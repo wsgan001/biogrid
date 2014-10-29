@@ -27,7 +27,8 @@ def main():
     rows = search_db (cursor, qry)
     if not rows:
         rows = search_db (cursor, qry, verbose=True)
-    print "done reading mysql - number of hits:", len(rows)
+    print "done reading biogrid (mysql)"
+    print "number of documented interactions:", len(rows)
 
     #############################################################
     # group pubmed ids
@@ -49,14 +50,7 @@ def main():
             interactions[label].append(pubmed_id)
         if not official_symbol_A in symbols: symbols.append(official_symbol_A)
         if not official_symbol_B in symbols: symbols.append(official_symbol_B)
-    print "done reading biogrid"
-    #############################################################
-    # check that the official symbol corresponds to a nuclear protein 
-    if False:
-         nuclear = {}
-         for  symbol in symbols:
-              nuclear[symbol] = is_nuclear(cursor, symbol)
-         print "done checking nuclear"
+    print "number of unique interactions (some with multiple pubmed entries): ", len(interactions.keys())
     cursor.close()
     db.close()
 
