@@ -138,19 +138,6 @@ def find_ensembl_id (cursor, gene):
     return [ensembl_id, 'failure']
 
       
-#########################################
-def make_name_resolution_table(cursor, db_name):
-    qry = "";
-    qry += " CREATE TABLE name_resolution ("
-    qry += "  	 tcga_hugo_symbol VARCHAR (50) NOT NULL, "
-    qry += "  	 ensembl_gene_id  VARCHAR (20), "
-    qry += "  	 comment  BLOB "
-    qry += ") ENGINE=MyISAM"
-    rows = search_db(cursor, qry)
-    qry = "create index hugo_idx on name_resolution (tcga_hugo_symbol)"
-    rows = search_db(cursor, qry)
-    print qry
-    print rows
   
 #########################################
 def resolve_gene_name (cursor, name):
@@ -174,6 +161,8 @@ def resolve_gene_name (cursor, name):
     qry = "select * from uniprot_id_translation "
     qry += "where other_db_id = '%s'" % name
     rows = search_db(cursor, qry)
+    if rows:
+        print '\n'.join(rows)
 
 
     return ["unresolved", ""]
@@ -200,7 +189,7 @@ def main():
     inf = open (names_file, "r")
 
     for line  in inf:
-        name = line.rstrip().replace (' ', '')
+        name = line.rstrip().replace (' ', '').upper()
         ret = resolve_gene_name (cursor, name)
         print "%s\t%s\t%s" % (name, ret[0], ret[1])
 

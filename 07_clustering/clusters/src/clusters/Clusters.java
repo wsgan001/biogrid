@@ -9,13 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import static java.lang.System.in;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.factory.*;
-import org.neo4j.kernel.impl.util.StringLogger;
+
 
 
 /**
@@ -23,28 +17,21 @@ import org.neo4j.kernel.impl.util.StringLogger;
  * @author ivana
  */
 public class Clusters {
-    
-    private static GraphDatabaseService graphDb;
-    private static ExecutionEngine engine;
-    
+       
     public static void main(String[] args) {
-        startDb("/Users/ivana/databases/neo4j/data/graph.db");
-        engine = startEngine();     
+            
+        Neo4jOps neoInterface = new Neo4jOps();
+        ROps rInterface = new ROps();
+        
         ArrayList <String> names = readNames("/Users/ivana/scratch/yujia.names.resolved", "\\t", 1);   
-        extractSubnet(names);
-        //findCLusters();
-        shutdownDb();
+        //Neo4jOps.firstNbrs   (names);
+        ArrayList <ArrayList <String>> interactingPairs = Neo4jOps.interaction (names);
+        
+        neoInterface.shutdownDb();
       
     }
-    
-    private static void extractSubnet(ArrayList <String> names) {
-        Map<String, Object> params = new HashMap<>();
-        params.put( "official_symbols", names );
-        String query = "MATCH n WHERE n.official_symbol in {official_symbols} RETURN n";
-        ExecutionResult result = engine.execute( query, params );
-    }
-    
-    
+  
+      
     
     private static  ArrayList <String> readNames(String filename, String separator, int column) {
         String [] fields;
@@ -69,25 +56,7 @@ public class Clusters {
         return names;
     }
 
-    private static ExecutionEngine startEngine() {
-       StringBuffer dumpBuffer=new StringBuffer();
-       StringLogger dumpLogger=StringLogger.wrap(dumpBuffer);
-       return  new ExecutionEngine(graphDb, dumpLogger); 
-    }
-    private static void shutdownDb()  {
-        try {
-            if ( graphDb != null ) graphDb.shutdown();
-        } finally  {
-            graphDb = null;
-        }
-        System.out.println("graphDb closed"); 
-    }
-
-    private static void startDb(String storeDir)   {
-       graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(storeDir);
-       System.out.println("graphDb started on "+ storeDir);
-    }
-
+    
        
     
     
