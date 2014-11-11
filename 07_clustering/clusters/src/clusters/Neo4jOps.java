@@ -45,7 +45,7 @@ public class Neo4jOps {
  
     }
        
-   static ArrayList <ArrayList <String>>  interaction (ArrayList<String> names) {
+   static ArrayList <String[]>  interaction (ArrayList<String> names) {
         Map<String, Object> params = new HashMap<>();
         params.put("official_symbols", names);
         String query = "MATCH (tnf7int)-[:physical]-(neighbor) ";
@@ -59,12 +59,14 @@ public class Neo4jOps {
         ExecutionResult  result = engine.execute(query, params);
         doAfter();
       
-        ArrayList <ArrayList <String>>  interactingPairs = new  ArrayList <> ();
+        ArrayList <String[]>  interactingPairs = new  ArrayList <> ();
         String outLine;
         for (Map<String, Object> row : result) {
-            ArrayList <String> pair = new  ArrayList <> ();
+            String [] pair = new  String[2];
+            int i = 0;
             for (Map.Entry<String, Object> column : row.entrySet()) {
-                pair.add(column.getValue().toString());
+                pair[i] = (column.getValue().toString());
+                i++;    
             }
             interactingPairs.add(pair);
         }

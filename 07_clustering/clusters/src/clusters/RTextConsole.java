@@ -20,7 +20,7 @@ public class RTextConsole implements RMainLoopCallbacks {
 
     public void rWriteConsole(Rengine re, String text, int oType) {
         // we won't be using those here
-        //System.out.print(text);
+        System.out.print(text);
     }
 
     public void rBusy(Rengine re, int which) {

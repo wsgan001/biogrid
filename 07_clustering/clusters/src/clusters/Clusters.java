@@ -19,19 +19,20 @@ import java.util.ArrayList;
 public class Clusters {
        
     public static void main(String[] args) {
-            
+        
+        ArrayList <String> names = readNames("/Users/ivana/scratch/test.list", "\\t", 1);   
+        //ArrayList <String> names = readNames("/Users/ivana/scratch/yujia.names.resolved", "\\t", 1);   
+           
         Neo4jOps neoInterface = new Neo4jOps();
-        ROps rInterface = new ROps();
-        
-        ArrayList <String> names = readNames("/Users/ivana/scratch/yujia.names.resolved", "\\t", 1);   
         //Neo4jOps.firstNbrs   (names);
-        ArrayList <ArrayList <String>> interactingPairs = Neo4jOps.interaction (names);
-        
+        ArrayList <String[]> interactingPairs = Neo4jOps.interaction (names);       
         neoInterface.shutdownDb();
-      
+        
+        ROps rInterface = new ROps();
+        rInterface.findClusters(interactingPairs);
+        rInterface.shutDown();
     }
-  
-      
+
     
     private static  ArrayList <String> readNames(String filename, String separator, int column) {
         String [] fields;
