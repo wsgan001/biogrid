@@ -5,14 +5,11 @@
  */
 package clusters;
 
-import java.awt.FileDialog;
-import java.awt.Frame;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.RMainLoopCallbacks;
 import org.rosuda.JRI.Rengine;
+import scala.Int;
 
 /**
  *
@@ -46,72 +43,38 @@ public class ROps {
         System.out.println("Rengine up, moving on");
     }
     
-    public void findClusters (ArrayList <String[]> listOfEdges) {
+    public HashMap <String,Integer> findClusters (ArrayList <String[]> listOfEdges, ArrayList <String[]> listOfVertices) {
   
         array2dataFrame(listOfEdges, "edges");
         System.out.println("created edges data.frame");
+        array2dataFrame(listOfVertices, "vertices");
+        System.out.println("created vertices data.frame");
         //
         REXP x;
-        x = rEngine.eval("edges", false);
-        System.out.println("edges:");
-        System.out.println(x);
         x = rEngine.eval("library(igraph)"); // load the necessary library
         // create graph
-        x = rEngine.eval("ig = graph.data.frame(edges, directed=FALSE, vertices=NULL)");
+        x = rEngine.eval("ig = graph.data.frame(edges, directed=FALSE, vertices)");
         x = rEngine.eval("print(ig, e=TRUE, v=TRUE)");
         // Run Girvan-Newman clustering algorithm.
         x = rEngine.eval("communities = edge.betweenness.community(ig)");
-        System.out.println(x);
-        x = rEngine.eval("print(communities)");
-        System.out.println(x);
-
         
+        x = rEngine.eval("membership(communities)");
+        // by some trial end error we discover that this works: (usin X.asList or x.asVector does not)
+        // trial and error consists on inspecting the R output and noticing it looks like this:
+        // [REAL* (1.0, 2.0, 3.0, 4.0, 5.0, ..., 17.0, 18.0, 4.0)]
+        double[] ret3 =  x.asDoubleArray();
+        HashMap  <String,Integer> clusterMembership = new HashMap<> ();
+        for (String[] vertex: listOfVertices) {
+            String name = vertex[0];
+            int idx = listOfVertices.indexOf(vertex);
+            clusterMembership.put(name, (Integer)(int)ret3[idx] );
+        }
+        return clusterMembership;
+         
     }
 
     private void array2dataFrame(ArrayList<String[]> inputArray, String dataFrameName) {
-       // data frame is a list of lists. for example
-        //> test2 <- list( c('a','b','c'), c(a='d',b='e',c='f'))
-        //> as.data.frame(test2)
-        //    a b c
-        //  1 a b c
-        //  2 d e f
-//        
-//        long[] idArray = new long[2];
-//        // I should not really be needing this, but
-//        // the thinkg wont print without it
-//        // <0 rows> (or 0-length row.names)
-//        String[] rowNames = new String[3];
-//        String da[] = {"ab", "cv", "mn"};
-//        String db[] = {"kn", "jh", "gh"};
-//        idArray[0] = rEngine.rniPutStringArray(da);
-//        idArray[1] = rEngine.rniPutStringArray(db);
-//        rowNames[0] = "1";
-//        rowNames[1] = "2";
-//        rowNames[2] = "3";
-//
-//        // now build a list (generic vector is how that's called in R)
-//        long listOfArraysId = rEngine.rniPutVector(idArray);
-//
-//        // ok, we have a proper list now
-//        // we could use assign and then eval "b<-data.frame(b)", but for now let's build it by hand:       
-//        long rowNamesID = rEngine.rniPutStringArray(rowNames);
-//        rEngine.rniSetAttr(listOfArraysId, "row.names", rowNamesID);
-//
-//        long keywordId = rEngine.rniPutString("data.frame");
-//        rEngine.rniSetAttr(listOfArraysId, "class", keywordId);
-//
-//        // assign the whole thing to the "b" variable
-//        rEngine.rniAssign("edges", listOfArraysId, 0);
-//
-//        REXP x;
-//        x = rEngine.eval("print(edges)", false);
-//        System.exit(1);
-//        
-//        
-          // we are storinf the data column-wise
-        // since this is quick-and-dirty thing, I'll take that the 
-        // input is fair, and all entries in the input list
-        // are String arrrays of the same length
+         // are String arrrays of the same length
         int numberOfColumns = inputArray.get(0).length;
         int numberOfRows    = inputArray.size();
         String[][] column = new String[numberOfColumns][numberOfRows];
@@ -139,10 +102,7 @@ public class ROps {
         for (int i=0; i<numberOfRows; i++) {
             rowNames[i] = Integer.toString(i);
         }
-        
-        
-
-        // ok, we have a proper list now
+         // ok, we have a proper list now
         // we could use assign and then eval "b<-data.frame(b)", but for now let's build it by hand:       
         long rowNamesID = rEngine.rniPutStringArray(rowNames);
         rEngine.rniSetAttr(listOfArraysId, "row.names", rowNamesID);
@@ -151,12 +111,7 @@ public class ROps {
         rEngine.rniSetAttr(listOfArraysId, "class", keywordId);
 
         // assign the whole thing to the "b" variable
-        rEngine.rniAssign("edges", listOfArraysId, 0);
-
-        REXP x;
-        x = rEngine.eval("print(edges)", false);
-        System.exit(1);
-        
+        rEngine.rniAssign(dataFrameName, listOfArraysId, 0);
                 
    }
     

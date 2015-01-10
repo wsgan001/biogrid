@@ -18,41 +18,21 @@ import scala.Int;
  *
  * @author ivana
  */
-public class Clusters {
+public class Paths {
        
     public static void main(String[] args) {
         
-        ArrayList <String> names = readNames("/Users/ivana/Dropbox/yujia/yujia.names.resolved", "\\t", 2);   
-        //ArrayList <String> names = readNames("/Users/ivana/Dropbox/yujia/test.list", "\\t", 2);   
-        for (String name: names) {
-            System.out.println(name);
-        }
-        
+        ArrayList <String> names1 = readNames("/Users/ivana/Dropbox/yujia/yujia.names.resolved", "\\t", 2);   
+        ArrayList <String> names2 = readNames("/Users/ivana/Dropbox/yujia/data/HDACs_approved_names.tab", "\\t", 2);   
+                 
         Neo4jOps neoInterface = new Neo4jOps();
         //Neo4jOps.firstNbrs   (names);
-        ArrayList <String[]> interactingPairs = Neo4jOps.interaction (names);       
+        ArrayList <String[]> paths = Neo4jOps.interactionPaths (names1, names2);       
         neoInterface.shutdownDb();
         // for now just output here
-        
-        
-        ROps rInterface = new ROps();
-        ArrayList <String[]> vertices = new ArrayList<> ();
-        for (String name: names) {
-            String [] vertex = new String [1];
-            vertex[0] = name; // other indices could be properties of the nodes
-            vertices.add(vertex);
+        for (String [] path: paths) {
+            System.out.println(path);
         }
-        
-        HashMap  <String,Integer> clusterMembership = rInterface.findClusters(interactingPairs, vertices);
-        rInterface.shutDown();
-        
-        for (String name: names) {
-            System.out.printf("%d   %s   %d \n", 
-                    names.indexOf(name), name, clusterMembership.get(name));
-        }       
-         for (String[] pair: interactingPairs) {
-             System.out.printf("e %d  %d \n", names.indexOf(pair[0]), names.indexOf(pair[1]));
-         }
         
     }
 

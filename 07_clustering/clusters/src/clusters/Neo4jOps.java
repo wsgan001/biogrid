@@ -44,8 +44,44 @@ public class Neo4jOps {
         genericQuery (engine, query, params);
  
     }
-       
-   static ArrayList <String[]>  interaction (ArrayList<String> names) {
+    static ArrayList <String[]> interactionPaths (ArrayList<String>names1, ArrayList<String>names2) {
+        ArrayList <String[]>  interactionPaths = new  ArrayList <> ();
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("from_symbols", names1);
+        params.put("to_symbols", names2);
+        String query = "MATCH (tnf7int)-[:physical]-(neighbor) ";
+        query += "WHERE tnf7int.official_symbol in {from_symbols} ";
+        query += "AND neighbor.official_symbol in {to_symbols} ";
+        query += "RETURN  DISTINCT tnf7int.official_symbol, neighbor.official_symbol";
+        
+        doBefore();
+        ExecutionResult  result = engine.execute(query, params);
+        doAfter();
+        
+        if (result.columns().isEmpty()) {
+            System.out.println ("no interacting pairs found in the provided list");
+            System.exit(1);
+        }
+        
+        for (Map<String, Object> row : result) {
+            String [] path = new  String[row.size()];
+            int i = 0;
+            System.out.println(" *** ");
+            for (Map.Entry<String, Object> column : row.entrySet()) {
+                
+                System.out.println(column.getValue().toString());
+                //path[i] = (column.getValue().toString());
+                //i++;    
+            }
+           System.out.println(" *** ");
+          interactionPaths.add(path);
+        }
+         
+        return interactionPaths;
+    }
+   
+    static ArrayList <String[]>  interaction (ArrayList<String> names) {
         Map<String, Object> params = new HashMap<>();
         params.put("official_symbols", names);
         String query = "MATCH (tnf7int)-[:physical]-(neighbor) ";
@@ -58,9 +94,14 @@ public class Neo4jOps {
         doBefore();
         ExecutionResult  result = engine.execute(query, params);
         doAfter();
+        
+        if (result.columns().isEmpty()) {
+            System.out.println ("no interacting pairs found in the provided list");
+            System.exit(1);
+        }
       
         ArrayList <String[]>  interactingPairs = new  ArrayList <> ();
-        String outLine;
+ 
         for (Map<String, Object> row : result) {
             String [] pair = new  String[2];
             int i = 0;
@@ -68,7 +109,18 @@ public class Neo4jOps {
                 pair[i] = (column.getValue().toString());
                 i++;    
             }
-            interactingPairs.add(pair);
+            // remove switched pairs
+            String [] switchedPair = new  String[2];
+            switchedPair[0] = pair[1];
+            switchedPair[1] = pair[0];
+            boolean found = false;
+            for (String[] p: interactingPairs) {
+                if (p[0].equals(switchedPair[0]) && p[1].equals(switchedPair[1])){
+                    found = true;
+                    break;
+                }
+            }   
+            if (!found) interactingPairs.add(pair);
         }
         return interactingPairs;
    }
