@@ -50,10 +50,10 @@ public class Neo4jOps {
         Map<String, Object> params = new HashMap<>();
         params.put("from_symbols", names1);
         params.put("to_symbols", names2);
-        String query = "MATCH (tnf7int)-[:physical]-(neighbor) ";
+        String query = "MATCH (tnf7int)-[interaction:physical]-(neighbor) ";
         query += "WHERE tnf7int.official_symbol in {from_symbols} ";
         query += "AND neighbor.official_symbol in {to_symbols} ";
-        query += "RETURN  DISTINCT tnf7int.official_symbol, neighbor.official_symbol";
+        query += "RETURN   tnf7int.official_symbol, interaction.pubmed_ids, neighbor.official_symbol";
         
         doBefore();
         ExecutionResult  result = engine.execute(query, params);
@@ -67,15 +67,11 @@ public class Neo4jOps {
         for (Map<String, Object> row : result) {
             String [] path = new  String[row.size()];
             int i = 0;
-            System.out.println(" *** ");
             for (Map.Entry<String, Object> column : row.entrySet()) {
-                
-                System.out.println(column.getValue().toString());
-                //path[i] = (column.getValue().toString());
-                //i++;    
+                path[i] = column.getValue().toString();
+                i++;    
             }
-           System.out.println(" *** ");
-          interactionPaths.add(path);
+           interactionPaths.add(path);
         }
          
         return interactionPaths;
@@ -105,6 +101,7 @@ public class Neo4jOps {
         for (Map<String, Object> row : result) {
             String [] pair = new  String[2];
             int i = 0;
+            
             for (Map.Entry<String, Object> column : row.entrySet()) {
                 pair[i] = (column.getValue().toString());
                 i++;    

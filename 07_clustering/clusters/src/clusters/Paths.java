@@ -31,7 +31,10 @@ public class Paths {
         neoInterface.shutdownDb();
         // for now just output here
         for (String [] path: paths) {
-            System.out.println(path);
+            for (String node: path) {
+                System.out.print(node + "  ");
+            }
+            System.out.println();
         }
         
     }
