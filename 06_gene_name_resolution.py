@@ -3,7 +3,6 @@
 # create index hugo_idx on somatic_mutations (hugoSymbol);
 
 import sys, os
-import MySQLdb
 from   bg_utils.mysql   import  *
 
 #########################################

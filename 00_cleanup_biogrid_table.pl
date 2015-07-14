@@ -2,16 +2,7 @@
 
 # usage:
 # ~/pypeworks/biogrid/00_cleanup_biogrid_table.pl  BIOGRID-ORGANISM-Homo_sapiens-3.2.117.tab2.txt > BIOGRID-ORGANISM-Homo_sapiens-3.2.117.tab2.clean.txt
-
-# follow by (in mysql)
-# mysql> drop database biogrid; 
-# mysql> create database biogrid;
-# mysql> use biogrid;
-# mysql> source  ~/pypeworks/biogrid/01_homo_sapiens.sql;
-# mysql> describe homo_sapiens;
-# myswl> mysql> load data infile '/Users/ivana/databases/biogrid/BIOGRID-ORGANISM-Homo_sapiens-3.2.117.tab2.clean.txt' into table homo_sapiens ignore 1 lines;
-
-
+# can use bash to apply it to more species as needed
 
 while ( <>) {
     chomp;

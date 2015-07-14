@@ -35,6 +35,8 @@ sys_tfm
 *.aln
 *to_*.pdb
 *seqs_not_found
+data
+
 
 # OS generated files #
 ######################
@@ -46,3 +48,5 @@ Thumbs.db
 /07_clustering/InteractionClusters/nbproject/private/
 /07_clustering/clusters/nbproject/private/
 /07_clustering/clusters/build/
+/08_path_finding/path/nbproject/private/
+/08_path_finding/path/build/

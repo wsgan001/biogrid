@@ -53,7 +53,7 @@ public class Neo4jOps {
         String query = "MATCH (tnf7int)-[interaction:physical]-(neighbor) ";
         query += "WHERE tnf7int.official_symbol in {from_symbols} ";
         query += "AND neighbor.official_symbol in {to_symbols} ";
-        query += "RETURN   tnf7int.official_symbol, interaction.pubmed_ids, neighbor.official_symbol";
+        query += "RETURN  DISTINCT tnf7int.official_symbol, interaction.pubmed_ids, neighbor.official_symbol";
         
         doBefore();
         ExecutionResult  result = engine.execute(query, params);

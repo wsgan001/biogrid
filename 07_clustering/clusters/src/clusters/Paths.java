@@ -23,22 +23,32 @@ public class Paths {
     public static void main(String[] args) {
         
         ArrayList <String> names1 = readNames("/Users/ivana/Dropbox/yujia/yujia.names.resolved", "\\t", 2);   
-        ArrayList <String> names2 = readNames("/Users/ivana/Dropbox/yujia/data/HDACs_approved_names.tab", "\\t", 2);   
+        ArrayList <String> names2 = readNames("/Users/ivana/Dropbox/yujia/data/HATs_approved_names.tab", "\\t", 2);   
                  
         Neo4jOps neoInterface = new Neo4jOps();
         //Neo4jOps.firstNbrs   (names);
         ArrayList <String[]> paths = Neo4jOps.interactionPaths (names1, names2);       
         neoInterface.shutdownDb();
         // for now just output here
-        for (String [] path: paths) {
-            for (String node: path) {
-                System.out.print(node + "  ");
+        
+        for (String[] path : paths) {
+            boolean first = true;
+
+            for (String node : path) {
+                if (first) {
+                    first = false;
+                } else {
+                    System.out.print("\t");
+                }
+
+                System.out.print(node);
             }
             System.out.println();
         }
-        
+       
     }
-
+    
+        
     
     private static  ArrayList <String> readNames(String filename, String separator, int column) {
         String [] fields;
