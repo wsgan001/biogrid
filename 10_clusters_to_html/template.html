@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>ESR1 to Hand2</title>
+    <link rel="stylesheet" href="stylesheets/base.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link rel="stylesheet" href="stylesheets/alchemy.min.css">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <p> Ivana, July 2015<br>
+        </p>
+
+
+        <br>
+        <a href="../index.html">Home</a><br>
+        <br>
+        <a href="cluster_notes.html">Cluster Notes</a><br>
+       <br>
+
+__CLUSTERS__
+
+        <br>
+
+        </p>
+        <p>Pieces&nbsp; of software used here<br>
+          <a href="http://neo4j.com/" target="_blank">Neo4j</a> (network database)<br>
+          <a href="http://graphalchemist.github.io/Alchemy/#/" target="_blank">Alchemy.js</a>
+          (visualization in browser)<br>
+           <br>
+        </p>
+        <p>Databases<br>
+          <a href="http://thebiogrid.org/" target="_blank">Biogrid</a><br>
+          <a href="http://www.genenames.org/" target="_blank">HGNC</a><br>
+          <a href="http://www.uniprot.org/" target="_blank">Uniprot</a><br>
+        </p>
+        <p>Talk to Me<br>
+          <a href="mailto:ivana.mihalek@gmail.com">Email</a> </p>
+      </header>
+      <section>        <h1>__TITLE__</h1>
+         <br>
+        <div class="alchemy" id="alchemy"></div>
+        <script src="javascripts/alchemy.min.js"></script>
+        <script type="text/javascript">
+        alchemy.begin({
+            dataSource: "__CLUSTER_JSON__", 
+	    graphHeight: function(){ return 480; },
+	    graphWidth: function(){ return 480; },      
+	    linkDistance: function(){ return 20; },
+            nodeCaption: 'name', 
+ 	    forceLocked: false,
+            nodeCaptionsOnByDefault: true,
+	    alpha: 0.3,
+	    initialScale: 0.75,
+            nodeTypes: { "type": 
+                ["default", "hat", "hdac"] 
+            }, 
+            nodeStyle: {
+                "all": {
+
+        "radius": function(d) {
+                        if(d.getProperties().weight)
+                              return d.getProperties().weight; 
+	                else return 10 
+                       }, 
+	              "color": "__COLOR__",
+	              "borderColor": "__COLOR__",
+                      "selected": {
+                         "color": "__COLOR__",
+                      },                    
+                      "highlighted": {
+                         "color": "__COLOR__",
+                         "radius": function(d) {
+                              if(d.getProperties().weight)
+                                 return d.getProperties().weight*1.2; 
+	                     else return 12 
+                          }, 
+                      }
+                },
+	        "hdac": {
+	             "borderColor": "__COLOR__",
+  	             "color": "#4775FF",
+	             "radius": 10,
+                     "highlighted": {
+                        "radius": 12 
+                     }
+        	}, 
+	        "hat": {
+	             "borderColor": "__COLOR__",
+  	             "color": "#FFCCFF",
+	            "radius": 10,
+                     "highlighted": {
+                        "radius": 12 
+                     }
+         	}, 	       
+            },
+            edgeStyle: {
+                "all": {
+                    "color": "__COLOR__",
+	            "opacity": 0.8
+               }
+            }
+ 
+            })
+    </script> (Give it a sec to focus. Use mouse left button to pan, middle button to zoom.<br> Note you can move the nodes around.)
+
+
+<hr>
+
+ <div style="height: 250px; overflow-y: scroll; -webkit-overflow-scrolling: touch;">
+
+ __FUNCTION__
+
+</div>
+
+</section>
+      <script src="javascripts/scale.fix.js"></script> </div>
+  </body>
+</html>

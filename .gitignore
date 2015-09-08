@@ -36,6 +36,7 @@ sys_tfm
 *to_*.pdb
 *seqs_not_found
 data
+*.csv
 
 
 # OS generated files #

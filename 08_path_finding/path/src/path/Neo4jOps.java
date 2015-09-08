@@ -11,6 +11,8 @@ package path;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
 import org.neo4j.graphdb.*;
@@ -20,15 +22,18 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 
 
-
-
 public class Neo4jOps {
     private GraphDatabaseService graphDb;
     private GlobalGraphOperations ggo;
     private  Transaction tx;
     private String storeDir;
     
-    RelationshipType INTERACTS  = DynamicRelationshipType.withName( "INTERACTS" );
+    RelationshipType PHYSICAL_LOW     = DynamicRelationshipType.withName( "PHYSICAL_LOW" );
+    RelationshipType PHYSICAL_HI      = DynamicRelationshipType.withName( "PHYSICAL_HI" );
+    RelationshipType GENETIC_LOW      = DynamicRelationshipType.withName( "GENETIC_LOW" );
+    RelationshipType GENETIC_HI       = DynamicRelationshipType.withName( "GENETIC_HI" );
+    RelationshipType PHYSICAL_HI_LOW  = DynamicRelationshipType.withName( "PHYSICAL_HI_LOW" );
+    RelationshipType GENETIC_HI_LOW   = DynamicRelationshipType.withName( "GENETIC_HI_LOW" );
     
     private static Label label = DynamicLabel.label("gene_name");
     
@@ -53,7 +58,59 @@ public class Neo4jOps {
     }
     
     ///////////////////////////////////
-    public ArrayList <ArrayList<String>> findPaths(String geneName1, String geneName2, int maxPathLength) {
+    public  ArrayList <ArrayList<String>> findEdges (ArrayList <Node> vertexNodes) {
+        
+        doBefore();
+        
+        ArrayList<String> vertices = new  ArrayList<String> ();
+        ArrayList<String> edges    = new  ArrayList<String> ();
+        
+         
+        ArrayList <Long> nodeIds = new ArrayList <Long> ();
+        for (Node node: vertexNodes) {
+            vertices.add((String)node.getProperty("official_symbol"));
+            nodeIds.add(node.getId());
+        }
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("identifiers", nodeIds);
+        //String query = "MATCH (a)-[int:PHYSICAL_LOW]-(b) ";
+        String query = "MATCH (a)-[int]-(b) ";
+        query += "WHERE id(a) in {identifiers} ";
+        query += "AND id(b) in {identifiers} ";
+        query += "RETURN  DISTINCT a.official_symbol AS a, b.official_symbol AS b, type(int) AS exp_type, int.pubmed_ids AS pubmed";
+        Result result = graphDb.execute(query, params);
+        
+        while ( result.hasNext()) {
+            Map <String, Object> ret = result.next();
+            String edge = "";
+            String gene1 = (String) ret.get("a");
+            String gene2 = (String) ret.get("b");
+            if ( gene1.compareTo(gene2)< 0) {
+                edge = gene1 + " " + gene2;
+            } else {
+                edge = gene2 + " " + gene1;
+            }
+            edge += " " + ret.get("pubmed");
+            edge += " " + ret.get("exp_type");
+            if (! edges.contains(edge)) {
+                edges.add(edge);
+            }
+        }
+        
+        ArrayList <ArrayList<String>> retval = new ArrayList <ArrayList<String>> ();
+        retval.add(vertices);
+        retval.add(edges);
+        
+        doAfter();
+       
+        return retval;
+    }
+    
+    
+    ///////////////////////////////////
+    public ArrayList <Node> findPaths(String geneName1, String geneName2, int maxPathLength,
+            ArrayList <ArrayList <String>>  pathsAsStringList, ArrayList <Node> vertexNodes) {
 
         doBefore();
 
@@ -64,43 +121,36 @@ public class Neo4jOps {
         int pathLength = 0;
         
        //PathFinder<Path> pathFinder = GraphAlgoFactory.shortestPath(
+        //PathFinder<Path> pathFinder = GraphAlgoFactory.allPaths(
+        //    PathExpanders.forTypeAndDirection(PHYSICAL_LOW, Direction.BOTH),  maxPathLength);
         PathFinder<Path> pathFinder = GraphAlgoFactory.allPaths(
-            PathExpanders.forTypeAndDirection( INTERACTS, Direction.BOTH ),  maxPathLength);
+            PathExpanders.allTypesAndDirections(),  maxPathLength);
         Iterable<Path> paths = pathFinder.findAllPaths( node1, node2 );
-        ArrayList <String> vertices = new ArrayList <String>();
-        ArrayList <String> edges = new ArrayList <String>();
-        if (paths != null ) {
-            
-           for (Path path: paths) {
-                String prevSymbol = null;
+        
+        if (paths != null ) {           
+            int numberOfPaths = 0;
+            for (Path path: paths) {   
+                ArrayList <String> pathNames = new ArrayList <String> ();
+                numberOfPaths ++;
                 for (Node node: path.nodes()) {
-                    String symbol = (String) node.getProperty("official_symbol");
-                   if (! vertices.contains(symbol) )  vertices.add(symbol);
-                   if ( prevSymbol != null ){
-                       String pair = "";
-                       if (prevSymbol.compareTo(symbol) < 0 ) {
-                           pair = prevSymbol + "_" + symbol;
-                       } else {
-                           pair = symbol + "_" +  prevSymbol ;
-                       }
-                       if (! edges.contains(pair) )  edges.add(symbol);
-                   }
+                    // special way in which we want to handle thigs here: do not add the the
+                    // query proteins to this list
+                    //if (node == path.startNode() || node== path.endNode()) continue;
+                    if (!vertexNodes.contains(node)) vertexNodes.add(node);
+                    pathNames.add( (String)node.getProperty("official_symbol"));
                 }
-           }
-           System.out.println("all nodes seen " + vertices.size());
-           for (String symbol: vertices) {
-               System.out.println(symbol);
-           }
+                pathsAsStringList.add(pathNames);
+            }
+           System.out.println("number of paths: " + numberOfPaths);
+           System.out.println("number of nodes: " + vertexNodes.size());
            
         } else {
             System.out.println("no paths found");
         }
         System.out.println("done");
         doAfter();
-        ArrayList <ArrayList<String>>  retPair = new  ArrayList <ArrayList<String>> ();
-        retPair.add(vertices);
-        retPair.add(edges);
-        return retPair;
+        
+        return vertexNodes;
     }
       
     ///////////////////////////////////

@@ -50,9 +50,7 @@ public class ROps {
     public HashMap <String,Integer> findClusters (ArrayList <String[]> listOfEdges, ArrayList <String[]> listOfVertices) {
   
         array2dataFrame(listOfEdges, "edges");
-        System.out.println("created edges data.frame");
         array2dataFrame(listOfVertices, "vertices");
-        System.out.println("created vertices data.frame");
         //
         REXP x;
         x = rEngine.eval("library(igraph)"); // load the necessary library
@@ -95,10 +93,10 @@ public class ROps {
         for (int j = 0; j< numberOfColumns; j++) {
             idArray[j] = rEngine.rniPutStringArray(column[j]);
         }
-        // now build a list (generic vector is how that's called in R)
+        // now build a list ('generic vector' is what that is called in R)
         long listOfArraysId = rEngine.rniPutVector(idArray);
 
-       // I should not really be needing the row names, but
+        // I should not really be needing the row names, but
         // the thing wont print without it
         // <0 rows> (or 0-length row.names)
         // so I'm not sure if the things are going ok
