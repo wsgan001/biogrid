@@ -8,13 +8,13 @@ package clusters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.*;
 import org.neo4j.kernel.impl.util.StringLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -26,11 +26,10 @@ public class Neo4jOps {
     
     private static GraphDatabaseService graphDb;
     private static Transaction tx;
-    private static ExecutionEngine engine;
  
     public Neo4jOps () {
         startDb("/Users/ivana/databases/neo4j/data/graph.db");
-        engine = startEngine(); 
+   
     }
     
     static void firstNbrs(ArrayList<String> names) {
@@ -41,7 +40,9 @@ public class Neo4jOps {
         query += "RETURN DISTINCT tnf7int.official_symbol AS tnf7int, ";
         query += " neighbor.official_symbol AS nbr";
         
-        genericQuery (engine, query, params);
+        doBefore();
+        Result result = graphDb.execute(query, params);
+        doAfter();
  
     }
     static ArrayList <String[]> interactionPaths (ArrayList<String>names1, ArrayList<String>names2) {
@@ -56,7 +57,7 @@ public class Neo4jOps {
         query += "RETURN  DISTINCT tnf7int.official_symbol, interaction.pubmed_ids, neighbor.official_symbol";
         
         doBefore();
-        ExecutionResult  result = engine.execute(query, params);
+        Result  result = graphDb.execute(query, params);
         doAfter();
         
         if (result.columns().isEmpty()) {
@@ -64,14 +65,16 @@ public class Neo4jOps {
             System.exit(1);
         }
         
-        for (Map<String, Object> row : result) {
-            String [] path = new  String[row.size()];
+        while (result.hasNext()) {
+            Map<String, Object> row = result.next();
+
+            String[] path = new String[row.size()];
             int i = 0;
             for (Map.Entry<String, Object> column : row.entrySet()) {
                 path[i] = column.getValue().toString();
-                i++;    
+                i++;
             }
-           interactionPaths.add(path);
+            interactionPaths.add(path);
         }
          
         return interactionPaths;
@@ -85,12 +88,12 @@ public class Neo4jOps {
         query += "AND neighbor.official_symbol in {official_symbols} ";
         query += "RETURN  DISTINCT tnf7int.official_symbol, neighbor.official_symbol";
         
-        //genericQuery (engine, query, params);
-        
+        System.out.println (query);
         doBefore();
-        ExecutionResult  result = engine.execute(query, params);
+        Result result = graphDb.execute(query, params);
         doAfter();
         
+        System.out.println ("back from exec");
         if (result.columns().isEmpty()) {
             System.out.println ("no interacting pairs found in the provided list");
             System.exit(1);
@@ -98,7 +101,8 @@ public class Neo4jOps {
       
         ArrayList <String[]>  interactingPairs = new  ArrayList <> ();
  
-        for (Map<String, Object> row : result) {
+        while (result.hasNext()) {
+            Map <String, Object> row = result.next();
             String [] pair = new  String[2];
             int i = 0;
             
@@ -119,32 +123,15 @@ public class Neo4jOps {
             }   
             if (!found) interactingPairs.add(pair);
         }
+        
+        System.out.println ("back from pair search");
         return interactingPairs;
    }
     
-   private static void genericQuery (ExecutionEngine engine, String query, 
-                                     Map<String, Object> params) {
-        doBefore();
-        ExecutionResult  result = engine.execute(query, params);
-        doAfter();
-        System.out.println(result);
-        String outLine;
-        for (Map<String, Object> row : result) {
-            outLine = "";
-            for (Map.Entry<String, Object> column : row.entrySet()) {
-                outLine += column.getValue() + " ";
-            }
-            System.out.println(outLine);
-        }
-     
-   }
    
-   private static ExecutionEngine startEngine() {
-       StringBuffer dumpBuffer=new StringBuffer();
-       StringLogger dumpLogger=StringLogger.wrap(dumpBuffer);
-       return  new ExecutionEngine(graphDb, dumpLogger); 
-    }
+   
     public static void shutdownDb()  {
+        System.out.println("closing graphDb"); 
         try {
             if ( graphDb != null ) graphDb.shutdown();
         } finally  {
@@ -171,6 +158,7 @@ public class Neo4jOps {
     //////////////////////////////////////////////////////////////////////////
 
     private static void startDb(String storeDir)   {
+       System.out.println("starting "+ storeDir);
        graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(storeDir);
        System.out.println("graphDb started on "+ storeDir);
        dbStatistics();
@@ -182,6 +170,7 @@ public class Neo4jOps {
 
     public static void doAfter(){
         tx.success();
+        tx.close();
     }
 
    

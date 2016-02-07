@@ -47,9 +47,7 @@ def main():
     cursor = db.cursor()
     db_name = 'biogrid'
     switch_to_db(cursor, db_name)
-    species =  ["Bos_taurus", "Canis_familiaris", "Cavia_porcellus", "Chlorocebus_sabaeus",
-                "Cricetulus_griseus", "Equus_caballus", "Homo_sapiens", "Macaca_mulatta", "Mus_musculus",
-                "Oryctolagus_cuniculus", "Pan_troglodytes", "Rattus_norvegicus", "Sus_scrofa"]
+    species =  [ "Homo_sapiens", "Mus_musculus", "Rattus_norvegicus"]
 
     for spec in species:
         table = spec.lower()
@@ -59,8 +57,8 @@ def main():
             # if you really want to start from scratch, uncomment
             #qry = "drop table %s "  % table
             #rows = search_db(cursor, qry)
-
-        make_table (cursor, table)
+        else:
+            make_table (cursor, table)
 
     cursor.close()
     db.close()

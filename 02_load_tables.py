@@ -11,11 +11,10 @@ def main():
     db_name = 'biogrid'
     switch_to_db(cursor, db_name)
 
-    species =  ["Bos_taurus", "Canis_familiaris", "Cavia_porcellus", "Chlorocebus_sabaeus",
-                "Cricetulus_griseus", "Equus_caballus", "Homo_sapiens", "Macaca_mulatta", "Mus_musculus",
-                "Oryctolagus_cuniculus", "Pan_troglodytes", "Rattus_norvegicus", "Sus_scrofa"]
 
-    version = '3.4.126'
+    species =  [ "Homo_sapiens", "Mus_musculus", "Rattus_norvegicus"]
+
+    version = '3.4.133'
 
     for spec in species:
         table = spec.lower()

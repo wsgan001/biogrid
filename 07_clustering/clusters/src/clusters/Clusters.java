@@ -21,9 +21,10 @@ import scala.Int;
 public class Clusters {
        
     public static void main(String[] args) {
-        
-        ArrayList <String> names = readNames("/Users/ivana/Dropbox/yujia/yujia.names.resolved", "\\t", 2);   
-        //ArrayList <String> names = readNames("/Users/ivana/Dropbox/yujia/test.list", "\\t", 2);   
+        //ArrayList <String> names = readNames("/Users/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/report_table", 
+        //        "\\s+", 8);   
+        ArrayList <String> names = readNames("/Users/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/test.list",
+                "\\s+", 8);   
         for (String name: names) {
             System.out.println(name);
         }
@@ -33,7 +34,12 @@ public class Clusters {
         ArrayList <String[]> interactingPairs = Neo4jOps.interaction (names);       
         neoInterface.shutdownDb();
         // for now just output here
+        for (String[] intPair: interactingPairs) {
+            System.out.println (intPair[0] + "  " +intPair[1]);
+        }
         
+        
+        System.exit(0);
         
         ROps rInterface = new ROps();
         ArrayList <String[]> vertices = new ArrayList<> ();
@@ -52,7 +58,7 @@ public class Clusters {
         }       
          for (String[] pair: interactingPairs) {
              System.out.printf("e %d  %d \n", names.indexOf(pair[0]), names.indexOf(pair[1]));
-         }
+        }
         
     }
 
@@ -61,18 +67,19 @@ public class Clusters {
         String [] fields;
         ArrayList <String> names = new ArrayList ();
         try {
-
             BufferedReader br = new BufferedReader(new FileReader(filename));
             String strLine;
-            //Read File Line By Line
+             //Read File Line By Line
             while ((strLine = br.readLine()) != null) {
                 // chop the input line into fields
                 if (strLine.trim().length() ==0) continue;
                 fields = strLine.split(separator) ;
+                if (fields.length < column) continue;
                 String name = fields[column-1].replaceAll("\\s","");
                 if (name.equals("unresolved")) continue;
+                if (names.contains(name))  continue;
                 names.add(fields[column-1]);
-            }
+           }
             //Close the input stream
             in.close();
         } catch (Exception e) {//Catch exception if any

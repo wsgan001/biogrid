@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
-import scala.Int;
 
 /**
  *
