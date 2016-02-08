@@ -7,13 +7,15 @@
 from py2neo import neo4j, Node, rel
 from bg_utils.mysql   import  *
 import os, shutil
+import glob
+from py2neo.packages.httpstream import http
+http.socket_timeout = 9999
 
-
-neo4j_home = "/Users/ivana/databases/neo4j/data"
+neo4j_home = "/home/ivana/databases/neo4j/data"
 
 
 #################################################################
-def make_neo4jdb(cursor, species):
+def output_csvs(cursor, species):
 
     qry  = "select official_symbol_A,  official_symbol_B, experimental_system_type, throughput, pubmed_id "
     qry += "from %s " %  species
@@ -64,7 +66,7 @@ def make_neo4jdb(cursor, species):
             "interactions (some with multiple pubmed entries): ", count[exp_label]
 
     #############################################################
-    # after they took out batch from pu2neo, I do not know how to do the
+    # after they took out batch from py2neo, I do not know how to do the
     # database filling efficiently - so just output as csv, and try slurping it in
     outf = open ("names.csv", "w")
     print >> outf, 'symbol'
@@ -87,15 +89,16 @@ def make_neo4jdb(cursor, species):
     for exp_label in exp_labels:
         outf[exp_label].close()
 
-
-    #############################################################
-    # fill neo4j database
+        
+#############################################################
+# fill neo4j database
+def make_neo4jdb(species):
     graph_db = neo4j.Graph()
     # some bs about not authorized
     # "Alternatively, authentication can be disabled completely by editing the value of
     # the dbms.security.authorization_enabled
     #setting in the conf/neo4j-server.properties file."
-    infile = os.getcwd() + '/names.csv'
+    infile = os.getcwd() +'/names.csv'
     qry = "LOAD CSV WITH HEADERS FROM 'file://%s' " % infile
     qry +="AS line CREATE (g:gene {official_symbol: line.symbol} )"
     ret = graph_db.cypher.execute(qry)
@@ -107,8 +110,10 @@ def make_neo4jdb(cursor, species):
     print "qry:", qry
     print "ret:", ret
 
-    for exp_label in exp_labels:
-        infile = os.getcwd() + "/pubmed_ids."+ exp_label.lower()+".csv"
+    infiles = glob.glob(os.getcwd() +'/pubmed_ids.*.csv')
+    for infile in infiles:
+        print infile
+        exp_label = infile.split("/")[-1].replace("pubmed_ids.","").replace(".csv","")
         qry = "USING PERIODIC COMMIT 500 "
         qry += "LOAD CSV WITH HEADERS FROM  'file://%s' " % infile
         qry += "AS line MATCH (g1:gene {official_symbol: line.symbol_1}), (g2:gene {official_symbol: line.symbol_2}) "
@@ -136,7 +141,8 @@ def main():
     # I cannot really loop because I am moving the database dir each time
     species =  ["homo_sapiens"]
     for spec in species:
-        make_neo4jdb(mysql_cursor, spec)
+        #output_csvs(mysql_cursor, spec)
+        make_neo4jdb(spec)
 
     mysql_cursor.close()
     db.close()

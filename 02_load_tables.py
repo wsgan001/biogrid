@@ -6,6 +6,9 @@ from   bg_utils.mysql   import  *
 #########################################
 def main():
 
+    #home = "/Users/ivana"
+    home = "/home/ivana"
+    
     db     = connect_to_mysql()
     cursor = db.cursor()
     db_name = 'biogrid'
@@ -20,7 +23,7 @@ def main():
         table = spec.lower()
         print table
         qry  = " load data infile "
-        qry += "'/Users/ivana/databases/biogrid/clean/BIOGRID-ORGANISM-%s-%s.tab2.txt' " % (spec, version)
+        qry += "'%s/databases/biogrid/clean/BIOGRID-ORGANISM-%s-%s.tab2.txt' " % (home, spec, version)
         qry += " into table %s ignore 1 lines" % table
         rows = search_db(cursor, qry)
         print qry
