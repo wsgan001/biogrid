@@ -1,7 +1,7 @@
 #! /usr/bin/perl -w
 
 $species  = "human";
-
+# the files below ahould have materialized from neo4j/R
 $filename = "/Users/ivana/scratch/".$species."_clusters.txt";
 $interactions_file = "/Users/ivana/scratch/".$species."_pubmed_ids.txt";
 $home  = "/Users/ivana/scratch/";
@@ -41,7 +41,7 @@ open (IF, "<$interactions_file" )
 while (<IF>) {
     chomp;
     @aux = split;
-	push @edges, $aux[0]."_".$aux[1];
+    push @edges, $aux[0]."_".$aux[1];
 }
 close IF;
 
