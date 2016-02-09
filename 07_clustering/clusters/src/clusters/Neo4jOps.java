@@ -81,13 +81,17 @@ public class Neo4jOps {
         return interactionPaths;
     }
    
-    static ArrayList <String[]>  interaction (ArrayList<String> names) {
+    static ArrayList <String[]>  interaction (ArrayList<String> names, 
+                ArrayList <String[]>  interactingPairs, 
+                ArrayList <String>    edgesAsString) {
         Map<String, Object> params = new HashMap<>();
         params.put("official_symbols", names);
-        String query = "MATCH (tnf7int)-[:physical_low]-(neighbor) ";
+        String query = "MATCH (tnf7int)-[interaction:physical_low]-(neighbor) ";
         query += "WHERE tnf7int.official_symbol in {official_symbols} ";
         query += "AND neighbor.official_symbol in {official_symbols} ";
-        query += "RETURN  DISTINCT tnf7int.official_symbol, neighbor.official_symbol";
+        query += "RETURN  DISTINCT tnf7int.official_symbol AS a , ";
+        query += "neighbor.official_symbol AS b, interaction.pubmed_ids AS pubmed,  ";
+        query += "type(interaction) AS exp_type";
         
         System.out.println (query);
         doBefore();
@@ -97,31 +101,26 @@ public class Neo4jOps {
             System.out.println ("no interacting pairs found in the provided list");
             System.exit(1);
         }
-      
-        ArrayList <String[]>  interactingPairs = new  ArrayList <> ();
- 
+
         while (result.hasNext()) {
             Map <String, Object> row = result.next();
-            String [] pair = new  String[2];
-            int i = 0;
-            
-            for (Map.Entry<String, Object> column : row.entrySet()) {
-                pair[i] = (column.getValue().toString());
-                i++;    
+  
+            String edge = "";
+            String gene1 = (String) row.get("a");
+            String gene2 = (String) row.get("b");
+            if ( gene1.compareTo(gene2)< 0) {
+                edge = gene1 + " " + gene2;
+            } else {
+                edge = gene2 + " " + gene1;
             }
-            // remove switched pairs
-            String [] switchedPair = new  String[2];
-            switchedPair[0] = pair[1];
-            switchedPair[1] = pair[0];
-            boolean found = false;
-            for (String[] p: interactingPairs) {
-                if (p[0].equals(switchedPair[0]) && p[1].equals(switchedPair[1])){
-                    found = true;
-                    break;
-                }
-            }   
-            if (!found) interactingPairs.add(pair);
-        }
+            edge += " " + row.get("pubmed");
+            edge += " " + row.get("exp_type");
+            edgesAsString.add(edge);
+            String [] pair = new  String[2];
+            pair[0] = gene1;
+            pair[1] = gene2;
+            interactingPairs.add(pair);
+         }
         doAfter();
         return interactingPairs;
     }

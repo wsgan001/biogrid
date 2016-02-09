@@ -30,7 +30,7 @@ public class Clusters {
         ArrayList <String> names = readNames("/home/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/report_table", 
              "\\s+", 8);   
         //ArrayList <String> names = readNames("/home/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/test.list",
-        //     "\\s+", 8);   
+         //    "\\s+", 8);   
         for (String name: names) {
             System.out.println(name);
         }
@@ -42,15 +42,29 @@ public class Clusters {
         origPlusNbrs = Neo4jOps.addNeighbors(names, numOfHops);
         names = origPlusNbrs;
 
+        ArrayList <String[]> interactingPairs = new  ArrayList <> ();  
+        ArrayList <String>   edgesAsString= new  ArrayList <> () ;
+        Neo4jOps.interaction (names, interactingPairs, edgesAsString);
         
-        ArrayList <String[]> interactingPairs = Neo4jOps.interaction (names);       
         neoInterface.shutdownDb();
         
         if (interactingPairs.isEmpty()) {
             System.out.println ("No interactions in the list provided.");
             System.exit(0);
         }
-                   
+        
+        try {
+            PrintWriter writer =  new PrintWriter("/home/ivana/scratch/pubmed_ids.txt");
+            for (String pair: edgesAsString) {
+               String[] fields = pair.split(" ");
+               writer.printf("%s   %s   %s   %s\n", fields[0], fields[1], fields[2], fields[3]);
+            }
+            writer.close();
+            
+        } catch (Exception e) {
+            System.out.printf("error opening pubmed id file for output: " + e.getMessage());
+            System.exit(1);
+        }
         
         ROps rInterface = new ROps();
         ArrayList <String[]> vertices = new ArrayList<> ();
@@ -72,13 +86,16 @@ public class Clusters {
             }
             for (String[] pair : interactingPairs) {
                 writer.printf("e %d  %d \n", names.indexOf(pair[0]), names.indexOf(pair[1]));
-            }
-            
+            }           
             writer.close();
+            
+        } catch (Exception e) {
+            System.out.printf("error opening cluster file for output: " + e.getMessage());
+            System.exit(1);
         }
-    }
 
-    
+    }
+  
     private static  ArrayList <String> readNames(String filename, String separator, int column) {
         String [] fields;
         ArrayList <String> names = new ArrayList ();
