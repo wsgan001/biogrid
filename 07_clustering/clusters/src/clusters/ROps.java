@@ -18,9 +18,17 @@ public class ROps {
 
     private Rengine rEngine;
 
+
     public ROps() {
         // see rtest for all the hassle to get the thing to run
-        System.loadLibrary("jri");
+        // could not get it o un until I put the libjri.so int /usr/lib 
+        // /usr/lib was on java.library.path
+        // can be read using String property = System.getProperty("java.library.path");
+        // Also, before starting netbeans, netbeans.conf must be edited to contain pointer to R home
+        // export R_HOME="/usr/lib/R"
+        // also, from R itself, igraph package needs to be installed: install.packages("igraph")
+        // (this takes forever)
+        System.loadLibrary("jri"); 
         if (!Rengine.versionCheck()) {
             System.err.println("** Version mismatch - Java files don't match library version.");
             System.exit(1);

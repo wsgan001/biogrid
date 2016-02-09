@@ -6,10 +6,15 @@
 package clusters;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import static java.lang.System.in;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import scala.Int;
 
 
@@ -20,26 +25,32 @@ import scala.Int;
  */
 public class Clusters {
        
-    public static void main(String[] args) {
-        //ArrayList <String> names = readNames("/Users/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/report_table", 
-        //        "\\s+", 8);   
-        ArrayList <String> names = readNames("/Users/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/test.list",
-                "\\s+", 8);   
+    public static void main(String[] args) throws FileNotFoundException {
+        
+        ArrayList <String> names = readNames("/home/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/report_table", 
+             "\\s+", 8);   
+        //ArrayList <String> names = readNames("/home/ivana/projects/colabs/Biserka/progesterone/PR_binding_sites/scripts/test.list",
+        //     "\\s+", 8);   
         for (String name: names) {
             System.out.println(name);
         }
         
         Neo4jOps neoInterface = new Neo4jOps();
         //Neo4jOps.firstNbrs   (names);
+        int numOfHops = 1;
+        ArrayList <String> origPlusNbrs; 
+        origPlusNbrs = Neo4jOps.addNeighbors(names, numOfHops);
+        names = origPlusNbrs;
+
+        
         ArrayList <String[]> interactingPairs = Neo4jOps.interaction (names);       
         neoInterface.shutdownDb();
-        // for now just output here
-        for (String[] intPair: interactingPairs) {
-            System.out.println (intPair[0] + "  " +intPair[1]);
+        
+        if (interactingPairs.isEmpty()) {
+            System.out.println ("No interactions in the list provided.");
+            System.exit(0);
         }
-        
-        
-        System.exit(0);
+                   
         
         ROps rInterface = new ROps();
         ArrayList <String[]> vertices = new ArrayList<> ();
@@ -52,14 +63,19 @@ public class Clusters {
         HashMap  <String,Integer> clusterMembership = rInterface.findClusters(interactingPairs, vertices);
         rInterface.shutDown();
         
-        for (String name: names) {
-            System.out.printf("%d   %s   %d \n", 
-                    names.indexOf(name), name, clusterMembership.get(name));
-        }       
-         for (String[] pair: interactingPairs) {
-             System.out.printf("e %d  %d \n", names.indexOf(pair[0]), names.indexOf(pair[1]));
-        }
         
+        try (PrintWriter writer = new PrintWriter("/home/ivana/scratch/clusterss.txt")) {
+
+            for (String name : names) {
+                writer.printf("%d   %s   %d \n",
+                        names.indexOf(name), name, clusterMembership.get(name));
+            }
+            for (String[] pair : interactingPairs) {
+                writer.printf("e %d  %d \n", names.indexOf(pair[0]), names.indexOf(pair[1]));
+            }
+            
+            writer.close();
+        }
     }
 
     
